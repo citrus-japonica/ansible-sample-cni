@@ -77,6 +77,8 @@ ansible-playbook deploy.yaml
 
 ## Result 
 
+![](https://raw.githubusercontent.com/kkh913/resources/master/cni/cni_cluster.png)
+
 ```
 ➜ cat << EOF | kubectl apply -f -                                                         
 apiVersion: v1
