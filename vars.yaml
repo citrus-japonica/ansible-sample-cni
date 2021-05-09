@@ -1,0 +1,14 @@
+name: my-cni-demo
+podcidr: 10.240.0.0/16 
+interface: ens32 
+bridge: cni0
+nodeinfo: 
+- name: cni-master01 
+  ip: 192.168.100.100
+  podcidr: 10.240.0.0/24 
+- name: cni-worker01
+  ip: 192.168.100.101
+  podcidr: 10.240.1.0/24 
+- name: cni-worker02
+  ip: 192.168.100.102
+  podcidr: 10.240.2.0/24 

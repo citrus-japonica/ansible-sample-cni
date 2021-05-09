@@ -1,0 +1,65 @@
+--- 
+- name: Deploy my-cni-demo using ansible 
+  hosts: all 
+  vars_files: 
+  - vars.yaml
+
+  tasks: 
+    - name: install dependencies 
+      apt:
+        name: 
+          - bridge-utils 
+          - jq
+        state: latest 
+
+    - name: allow forwarding for src-ips in podcidr 
+      iptables:
+        chain: FORWARD
+        source: "{{ podcidr }}"
+        jump: ACCEPT
+
+    - name: allow forwarding for dst-ips in podcidr 
+      iptables:
+        chain: FORWARD
+        destination: "{{ podcidr }}"
+        jump: ACCEPT
+
+    - name: allow outgoing internet 
+      iptables: 
+        table: nat 
+        chain: POSTROUTING
+        source: "{{ item.podcidr }}"
+        jump: MASQUERADE
+        out_interface: "!{{ bridge }}"
+      loop: "{{ nodeinfo }}"
+      when: ansible_hostname == item.name
+
+    - name: allow communication across hosts 
+      command: >
+          ip route add {{ item.podcidr }} via {{ item.ip }} dev {{ interface }} 
+      ignore_errors: yes 
+      when: ansible_hostname != item.name
+      loop: "{{ nodeinfo }}"
+        
+    - name: ensure that /etc/cni/net.d exists 
+      file: 
+        state: directory 
+        recurse: yes 
+        path: /etc/cni/net.d 
+
+    - name: deploy configuration file 
+      template: 
+        src: 10-my-cni-demo.conf.j2
+        dest: /etc/cni/net.d/10-my-cni-demo.conf
+        owner: root
+        group: root
+        mode: 0644
+
+    - name: deploy binary file 
+      template:
+        src: my-cni-demo.j2
+        dest: /opt/cni/bin/my-cni-demo 
+        owner: root
+        group: root
+        mode: 0755
+

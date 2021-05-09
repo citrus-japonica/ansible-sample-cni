@@ -1,0 +1,10 @@
+{
+    "cniVersion": "0.3.1",
+    "name": "{{ name }}",
+    "type": "{{ name }}",
+{% for node in nodeinfo %}
+{% if node.name == ansible_hostname %}
+    "podcidr": "{{ node.podcidr }}"
+{% endif %}
+{% endfor %}
+}
